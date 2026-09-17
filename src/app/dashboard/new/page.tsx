@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { generateCode } from '@/lib/utils'
-import type { QuestionType } from '@/lib/types'
+import type { QuestionType, SessionMode } from '@/lib/types'
 
 interface QuestionDraft {
   type: QuestionType
@@ -20,6 +20,7 @@ const TYPE_LABELS: Record<QuestionType, string> = {
 
 export default function NewSessionPage() {
   const [title, setTitle] = useState('')
+  const [mode, setMode] = useState<SessionMode>('live')
   const [questions, setQuestions] = useState<QuestionDraft[]>([])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -75,7 +76,7 @@ export default function NewSessionPage() {
     const code = generateCode()
     const { data: session, error: sessionErr } = await supabase
       .from('sessions')
-      .insert({ title: title.trim(), code, presenter_id: user.id, status: activate ? 'active' : 'draft' })
+      .insert({ title: title.trim(), code, presenter_id: user.id, mode, status: activate ? 'active' : 'draft' })
       .select()
       .single()
 
@@ -116,11 +117,34 @@ export default function NewSessionPage() {
       <div className="card mb-6">
         <label className="label">Session Title</label>
         <input
-          className="input"
+          className="input mb-4"
           value={title}
           onChange={e => setTitle(e.target.value)}
           placeholder="e.g. Team Retrospective, Workshop Day 1"
         />
+
+        <label className="label">Mode</label>
+        <div className="grid grid-cols-2 gap-3">
+          {([
+            { value: 'live', icon: '🎤', title: 'Live', desc: 'You control which question is shown' },
+            { value: 'self_paced', icon: '🎯', title: 'Self-paced', desc: 'Audience answers all questions on their own' },
+          ] as { value: SessionMode; icon: string; title: string; desc: string }[]).map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setMode(opt.value)}
+              className="text-left p-3 rounded-lg transition-all"
+              style={{
+                background: mode === opt.value ? '#1e1433' : 'var(--surface-2)',
+                border: `2px solid ${mode === opt.value ? 'var(--primary)' : 'var(--border)'}`,
+              }}
+            >
+              <div className="text-lg mb-1">{opt.icon}</div>
+              <div className="font-semibold text-sm">{opt.title}</div>
+              <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{opt.desc}</div>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 mb-6">

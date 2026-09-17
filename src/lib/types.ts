@@ -1,5 +1,6 @@
 export type QuestionType = 'mcq' | 'rating' | 'word_cloud' | 'open_text'
 export type SessionStatus = 'draft' | 'active' | 'ended'
+export type SessionMode = 'live' | 'self_paced'
 
 export interface Session {
   id: string
@@ -7,6 +8,7 @@ export interface Session {
   title: string
   code: string
   status: SessionStatus
+  mode: SessionMode
   active_question_index: number
   created_at: string
 }
